@@ -8,7 +8,7 @@
 
 ```python
 pip install snscrape
-pip3 install pandas
+pip install pandas
 ```
 
 اطلاعاتی که از هر توئیت استخراج می‌شود به شرح زیر می‌باشد:
