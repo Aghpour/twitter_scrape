@@ -51,7 +51,7 @@ def time_counter(t):
     return tm, 'hours'
 ###############################
 # declare below variables:
-keyword = 'مولدسازی'
+keyword = 'بورس'
 start_date = '2023-01-29'
 end_date = '2023-01-30'
 lang = 'fa'
