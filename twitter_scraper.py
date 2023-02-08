@@ -55,8 +55,8 @@ keyword = 'بورس'
 start_date = '2023-01-29'
 end_date = '2023-01-30'
 lang = 'fa'
-chunk = 1000
-total_twt = 100
+chunk = 10000
+total_twt = 10000000
 ###############################
 t1 = time.perf_counter()
 collect(keyword, start_date, end_date, lang, chunk)
