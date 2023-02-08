@@ -2,40 +2,68 @@ import snscrape.modules.twitter as sntwitter
 import pandas as pd
 import time
 import os
+from IPython.display import clear_output
 from datetime import datetime
+###############################
+dir = os.getcwd()
+today = datetime.today().strftime('%Y-%m-%d')
+file_counter = []
+columns=['Datetime', 'Tweet_Text', 'Like_Count', 'Reply_Count', 'Retweet_Count',
+         'Quote_Count', 'Username', 'Display_Name', 'Followers_Count', 'Following_Count',
+         'User_Id', 'Tweet_Url', 'Tweet_Id', 'location']
+###############################
+def collect(keyword, start_date, end_date, lang, chunk):
+  scraper = sntwitter.TwitterSearchScraper(f'{keyword} lang:{lang} since:{start_date} until:{end_date}')
+  tweets_list = []
+  filename = f'{keyword}_{today}'
+  for i, tweet in enumerate(scraper.get_items()):
+    if i >= total_twt:
+      break
+    else:
+      tweets_list.append([tweet.date, tweet.rawContent, tweet.likeCount, tweet.replyCount, tweet.retweetCount,
+                          tweet.quoteCount, tweet.user.username, tweet.user.displayname, tweet.user.followersCount,
+                          tweet.user.friendsCount, tweet.user.id, tweet.url, tweet.id, tweet.user.location])
+      clear_output(wait=True)
+      #os.system('cls')  # clear terminal output. only for windows os
+      print(f'{i+1} - {tweet.user.username}')
+      if len(tweets_list) > 0 and len(tweets_list) % chunk == 0:
+          tweets_df = pd.DataFrame(tweets_list, columns=columns)
+          file_counter.append(len(tweets_list))
+          tweets_df.to_csv(f'{filename}_{len(file_counter)}.csv', index=False, encoding='utf-8')
+          tweets_list = []
 
-t1 = time.perf_counter()
-# Creating list to append tweet data to
-tweets_list = []
-keyword = 'بورس'
-start_date = '2022-05-15'
-end_date = '2022-06-04'
+  if len(tweets_list) > 0:
+    tweets_df = pd.DataFrame(tweets_list, columns=columns)
+    file_counter.append(len(tweets_list))
+    filename = f'{keyword}_{today}'
+    tweets_df.to_csv(f'{filename}_{len(file_counter)}.csv', index=False, encoding='utf-8')
+    tweets_list = []
+###############################
+def time_counter(t):
+  if t < 60:
+    tm = t
+    return tm, 'seconds'
+  elif t >= 60 and t < 3600:
+    tm = t / 60
+    return tm, 'minutes'
+  else:
+    tm = t / 3600
+    return tm, 'hours'
+###############################
+# declare below variables:
+keyword = 'مولدسازی'
+start_date = '2023-01-29'
+end_date = '2023-01-30'
 lang = 'fa'
-
-# Using TwitterSearchScraper to scrape data and append tweets to list
-for i,tweet in enumerate(sntwitter.TwitterSearchScraper(f'{keyword} lang:{lang} since:{start_date} until:{end_date}').get_items()):
-    if i>5000000:
-        break
-    elif keyword in tweet.content:
-        tweets_list.append([tweet.date, tweet.content, tweet.likeCount, tweet.replyCount, tweet.retweetCount, tweet.quoteCount,
-                        tweet.user.username, tweet.user.displayname, tweet.user.followersCount, tweet.user.friendsCount])
-        os.system('cls')  # clear terminal output. only for windows os
-        print(f'{i+1}, {tweet.user.username}')
-    
-# Creating dataframe
-tweets_df = pd.DataFrame(tweets_list, columns=['Datetime', 'Tweet_Text', 'Like_Count', 'Reply_Count', 'Retweet_Count',
-                                               'Quote_Count', 'Username', 'Display_Name', 'Followers_Count', 'Following_Count'])
-
-now = datetime.today().strftime('%Y-%m-%d_%H-%M')
-filename = f'{keyword}_{now}'
-tweets_df.to_csv(f'{filename}.csv', index = False, encoding='utf-8')
-
+chunk = 1000
+total_twt = 100
+###############################
+t1 = time.perf_counter()
+collect(keyword, start_date, end_date, lang, chunk)
 t2 = time.perf_counter() - t1
-tweets_count = len(tweets_list)
-os.system('cls')
-if t2 <= 60:
-    seconds = t2
-    print(f'It took {seconds:0.1f} seconds to download {tweets_count} tweets and exported to "{filename}.csv" file.')
-else:
-    minutes = t2/60
-    print(f'It took {minutes:0.1f} minutes to download {tweets_count} tweets and exported to "{filename}.csv" file.')
+###############################
+tt = time_counter(t2)
+clear_output(wait=True)
+#os.system('cls')  # clear terminal output. only for windows os
+print(f'It took {tt[0]:0.1f} {tt[1]} to collect {sum(file_counter)} tweets and\
+ exported into {len(file_counter)} files in "{dir}" directory.')
